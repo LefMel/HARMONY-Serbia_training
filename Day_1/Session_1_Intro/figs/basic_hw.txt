@@ -1,0 +1,25 @@
+model{
+  Cross_Classified_Data ~ dmulti(prob, N)
+  
+  # Test1+ Test2+
+	prob[1] <- (prev * ((se[1])*(se[2]))) + ((1-prev) * ((1-sp[1])*(1-sp[2])))
+  
+  # Test1+ Test2-
+	prob[2] <- (prev * ((se[1])*(1-se[2]))) + ((1-prev) * ((1-sp[1])*(sp[2])))
+
+  # Test1- Test2+
+	prob[3] <- (prev * ((1-se[1])*(se[2]))) + ((1-prev) * ((sp[1])*(1-sp[2])))
+
+  # Test1- Test2-
+	prob[4] <- (prev * ((1-se[1])*(1-se[2]))) + ((1-prev) * ((sp[1])*(sp[2])))
+
+  prev ~ dbeta(1, 1)
+  se[1] ~ dbeta(1, 1)
+  sp[1] ~ dbeta(1, 1)
+  se[2] ~ dbeta(1, 1)
+  sp[2] ~ dbeta(1, 1)
+
+  #data# Cross_Classified_Data, N
+  #monitor# prev, prob, se, sp
+  #inits# prev, se, sp
+}

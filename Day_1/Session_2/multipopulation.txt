@@ -1,0 +1,26 @@
+
+model{
+  for(p in 1:Populations){
+    Tally[1:4, p] ~ dmulti(prob[1:4, p], TotalTests[p])
+  
+    # Test1- Test2-
+	 	  prob[1,p] <- (prev[p] * ((1-se[1])*(1-se[2]))) + ((1-prev[p]) * ((sp[1])*(sp[2])))
+    # Test1+ Test2-
+  	prob[2,p] <- (prev[p] * ((se[1])*(1-se[2]))) + ((1-prev[p]) * ((1-sp[1])*(sp[2])))
+    # Test1- Test2+
+  	prob[3,p] <- (prev[p] * ((1-se[1])*(se[2]))) + ((1-prev[p]) * ((sp[1])*(1-sp[2])))
+  	 # Test1+ Test2+
+  	 prob[4,p] <- (prev[p] * ((se[1])*(se[2]))) + ((1-prev[p]) * ((1-sp[1])*(1-sp[2])))
+
+    prev[p] ~ dbeta(1, 1)
+  }
+  se[1] ~ dbeta(se_prior[1,1], se_prior[1,2])T(1-sp[1], )
+  sp[1] ~ dbeta(sp_prior[1,1], sp_prior[1,2])
+  se[2] ~ dbeta(se_prior[2,1], se_prior[2,2])T(1-sp[2], )
+  sp[2] ~ dbeta(sp_prior[2,1], sp_prior[2,2])
+
+  #data# Tally, TotalTests, Populations, se_prior, sp_prior
+  #monitor# prev, se, sp
+  #inits# prev, se, sp
+  #module# lecuyer
+}

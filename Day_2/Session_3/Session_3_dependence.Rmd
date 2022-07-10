@@ -1,0 +1,178 @@
+---
+title: "Multi-test|Multi-pop - Adjusting for conditional dependencies between tests"
+author:
+- Julio Alvarez
+- Eleftherios Meletis
+date: '2022-09-01'
+output:
+  beamer_presentation: default
+  slidy_presentation: default
+  ioslides_presentation: default
+params:
+  presentation: yes
+subtitle: CA18208 HARMONY Zurich Training School - https://harmony-net.eu/
+---
+
+```{r rendering, eval=FALSE, include=FALSE}
+# To render this as PDF (beamer) slides run:
+rmarkdown::render('Session_3_dependence.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
+```
+
+```{r setup, include=FALSE}
+library("tidyverse")
+library("runjags")
+library("rjags")
+runjags.options(silent.jags=TRUE, silent.runjags=TRUE)
+set.seed(2022-09-01)
+
+# Reduce the width of R code output for PDF only:
+if(params$presentation){
+  knitr::knit_hooks$set(size = function(before, options, envir) {
+    if(before){
+      knitr::asis_output(paste0("\\", options$size))
+    }else{
+      knitr::asis_output("\\normalsize")
+    }
+  })
+  knitr::opts_chunk$set(size = "scriptsize")
+}
+
+# Collapse successive chunks:
+space_collapse <- function(x){ gsub("```\n*```r*\n*", "", x) }
+# Reduce space between chunks:
+space_reduce <- function(x){ gsub("```\n+```\n", "", x) }
+knitr::knit_hooks$set(document = space_collapse)
+
+
+# To collect temporary filenames:
+cleanup <- character(0)
+```
+
+## Recap Hui-Walter 
+
+- Model assumptions 
+    * The population is divided into two or more populations with different prevalences in which two or more tests are evaluated
+    * *Se* and *Sp* are the same in all populations
+    * The tests are *conditionally independent* given the disease status.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (1)
+
+- The assumption (1) of distinct prevalences is necessary for the Hui-Walter model because otherwise, the data can be collapsed into a single 2x2 table with only three degrees of freedom for estimation.
+
+- The smaller the difference between disease prevalences, the larger are the posterior credible intervals, indicating a loss in precision.
+
+- The smallest difference in prevalence assessed by simulation was 10\%. In case of rare diseases, it might be difficult to find populations with prevalences higher than 10\%.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (2)
+
+- In reality, the assumption of constant *Se* and *Sp* is questionable as already illustrated in the figure. Here the same diagnostic tests have been applied in the same laboratory to experimentally and naturally infected cats. 
+
+![](figs/boenzli.pdf) 
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (2)
+
+- If assumption (2) is not satisfied, the accuracies would differ between two populations, this would add four additional parameters to be estimated, while there are only three additional degrees of freedom. 
+
+- *Se* and *Sp* are assumed to vary with external factors.
+
+- *Se*, for example, especially when detecting an infectious agent, may depend on the prevalence and the stage of disease. 
+
+- The occurrence of a so-called *spectrum bias* contradicts this assumption.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (3)
+
+- Assumption (3) demanding conditional independence was the first to be questioned by Vacek (1985).
+
+- Not accounting for potential conditional dependence may lead to misleading, biased estimates with a positive correlation leading to an over-estimation of the test accuracies and a negative of an under-estimation. 
+
+---
+---
+
+### Condtional independencies
+
+- Test are considered conditionally independent if the probability of getting a given test result on one test does not depend on the result from the other test, given the disease status of the individual.
+
+- Conditional independence implies that given that an animal is diseased (or not) the probability $P$ of positive (or negative) outcomes for T\textsubscript{1}, the test results of the first test, is the same -  regardless of the known outcome for the second test, T\textsubscript{2}.
+
+---
+
+### Conditional independence
+\[P(T\textsubscript{1}\textsuperscript{+},T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+}) = P(T\textsubscript{1}\textsuperscript{+} \vert D\textsuperscript{+}) \times  P(T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+})]\]
+
+### Conditional dependence
+\[P(T\textsubscript{1}\textsuperscript{+},T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+}) \neq P(T\textsubscript{1}\textsuperscript{+} \vert D\textsuperscript{+}) \times  P(T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+})\]
+
+ 
+---
+
+## Conditional dependencies
+
+- Conditional dependence, in contrast, implies that
+\[P(T\textsubscript{1}\textsuperscript{+} \vert T\textsubscript{2}\textsuperscript{+}) \neq P(T\textsubscript{1}\textsuperscript{+} \vert T\textsubscript{2}\textsuperscript{--})\] and / or \[P(T\textsubscript{1}\textsuperscript{--} \vert T\textsubscript{2}\textsuperscript{--}) \neq P(T\textsubscript{1}\textsuperscript{--} \vert T\textsubscript{2}\textsuperscript{+})\]
+ \noindent
+ 
+---
+
+## Conditional (in)dependencies Interpretation
+
+- Seen from a biological perspective, conditional dependency between two diagnostic tests could occur if both tests are based on the same biological principle.
+
+- For example, the *Sp*s of two ELISAs might be conditionally dependent because they are both affected by the same cross-reacting agent. Another example would be two PCRs utilising fecal material which might contain substances potentially inhibiting the PCR reaction. 
+
+---
+
+## Conditional dependencies 
+
+- Obviously, conditional dependencies or covariances are additional parameters to be estimated, which in the frequentist situation (without any constraints put on the parameters) would lead to a non-identifiable problem (over-parameterisation). 
+- Whereas under the assumption of conditional independence at least three tests per sample allowing to estimate seven parameters are needed, under the assumption of conditional dependence 15 parameters need to estimated thus leading to non-identifiability.
+- It is of course vital, that the parameters of a latent class model are identifiable to obtain meaningful estimates.
+
+
+---
+
+## Conditional dependencies 
+![](figs/berkvens.pdf) 
+
+---
+
+## Conditional dependencies
+
+- For example for two diagnostic tests named T\textsubscript{1} and T\textsubscript{2} the probabilities of the four different options of binary test results (+ +, + --, -- +, -- --) including also two conditional dependencies 
+    * $covs12$, the covariance between the sensitivities of test 1 and 2
+    * $covc12$, the covariance between specificities of test 1 and 2) could be modelled as follows:  	
+
+![](figs/covsc.pdf)  
+
+---
+
+## Example of a COVID-19 data set
+
+```{r}
+#![](C:\Users\shartn\Documents\Cost Harmony\Cost WS 2021\Trial files\jmv.pdf)
+```
+## Example of a COVID-19 data set
+1. how to prepare the data set in the correct format
+     * create_data_cassaniti.R
+2. how to describe the model
+     * model_final.bug
+3. how to run the model in JAGS with runjags
+     * runjags.version.R
+4. how to check convergence
+5. how to analyse the data
+
+## Exercises
+- Ex.3
+    - Can you re-run the exercises?
+    - Assess what happens if you add other covariances?
+    - How many could you add?
+    - Try different priors
+- Ex. 4 (Bonus)
+    - Could you expand the model with a fourth test with simulated data?
