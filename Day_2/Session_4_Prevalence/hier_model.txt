@@ -1,0 +1,49 @@
+#model specification
+model
+{
+for (i in 1:observations) {
+#app_p:apparent prevalence
+        y[i] ~ dbin(app_p[i], n[i])
+#animal_p: animal prevalence
+#Se:sensitivity
+#Sp:specificity
+        app_p[i] <- animal_p[i] * Se + (1 - animal_p[i]) * (1 - Sp)
+#animal_lev_p: animal level prevalence
+#herd_not_free: (0/1) the herd is free or not
+        animal_p[i] <- animal_lev_p[i] * herd_not_free[i]
+   	    herd_not_free[i] ~ dbern(herd_p[region[i]])
+        animal_lev_p[i] ~ dbeta(alpha, beta)
+#a: indices to calculate disease freedom or disease exceeding a prespecified level (here 5%) for the animals within each herd.
+        a[1, i] <- equals(animal_p[i], 0.00000E+00)
+        a[2, i] <- step(0.05-animal_p[i])
+    }
+for (j in 1:regions) {
+#herd_p: herd prevalence
+#herd_lev_p: herd level prevalence
+#region_not_free: (0/1) the region is free or not 
+      herd_p[j] <- herd_lev_p[j] * region_not_free[j]
+   	  herd_lev_p[j] ~ dbeta(ahp, bhp)
+#region_p: region prevalence
+   	 region_not_free[j] ~ dbern(region_p)
+#b: indices to calculate disease freedom or disease exceeding a prespecified level (here 10%) for the herds within each region.
+        b[1, j] <- equals(herd_p[j], 0.00000E+00)
+        b[2, j] <- step(0.1 - herd_p[j])
+    }
+region_p ~ dbeta(arp, brp)    
+#c: indices to calculate disease freedom or disease exceeding a prespecified level (here 20%) for the regions within the country.
+    c[1] <- equals(region_p, 0.00000E+00)
+    c[2] <- step(0.2 - region_p)
+#priors
+#mu: mean prevalence in infected herds
+#psi: a parameter expressing the variability of prevalence among infected herds 
+    mu ~ dbeta(amu, bmu)
+    psi ~ dgamma(apsi, bpsi)
+    alpha <- mu * psi
+    beta <- psi * (1 - mu)
+    Se ~ dbeta(ase1, bse1)
+    Sp ~ dbeta(asp1, bsp1)
+ 
+#monitor# app_p, animal_p, animal_lev_p, herd_p, herd_lev_p, region_p, Se, Sp, a, b, c, amu, bmu, mu, psi
+#inits# psi
+    
+}

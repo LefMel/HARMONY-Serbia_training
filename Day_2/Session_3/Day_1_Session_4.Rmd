@@ -1,0 +1,434 @@
+---
+title: "Hui-Walter models - Adjusting for conditional dependencies between tests"
+author:
+- Sonja Hartnack
+- Valerie Hungerbühler
+- Eleftherios Meletis
+date: '2022-07-14'
+output:
+  slidy_presentation: default
+  beamer_presentation: default
+  ioslides_presentation: default
+params:
+  presentation: yes
+subtitle: CA18208 HARMONY Zurich Training School - https://harmony-net.eu/
+---
+
+```{r rendering, eval=FALSE, include=FALSE}
+# To render this as PDF (beamer) slides run:
+rmarkdown::render('Day_1_Session_4.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
+```
+
+```{r setup, include=FALSE}
+library("tidyverse")
+library("runjags")
+library("rjags")
+runjags.options(silent.jags=TRUE, silent.runjags=TRUE)
+set.seed(2022-07-14)
+
+# Reduce the width of R code output for PDF only:
+if(params$presentation){
+  knitr::knit_hooks$set(size = function(before, options, envir) {
+    if(before){
+      knitr::asis_output(paste0("\\", options$size))
+    }else{
+      knitr::asis_output("\\normalsize")
+    }
+  })
+  knitr::opts_chunk$set(size = "scriptsize")
+}
+
+# Collapse successive chunks:
+space_collapse <- function(x){ gsub("```\n*```r*\n*", "", x) }
+# Reduce space between chunks:
+space_reduce <- function(x){ gsub("```\n+```\n", "", x) }
+knitr::knit_hooks$set(document = space_collapse)
+
+
+# To collect temporary filenames:
+cleanup <- character(0)
+```
+
+## Recap Hui-Walter 
+
+- Model assumptions 
+    * The population is divided into two or more populations with different prevalences in which two or more tests are evaluated
+    * *Se* and *Sp* are the same in all populations
+    * The tests are *conditionally independent* given the disease status.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (1)
+
+- The assumption (1) of distinct prevalences is necessary for the Hui-Walter model because otherwise, the data can be collapsed into a single 2x2 table with only three degrees of freedom for estimation.
+
+- The smaller the difference between disease prevalences, the larger are the posterior credible intervals, indicating a loss in precision.
+
+- The smallest difference in prevalence assessed by simulation was 10\%. In case of rare diseases, it might be difficult to find populations with prevalences higher than 10\%.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (2)
+
+- In reality, the assumption of constant *Se* and *Sp* is questionable as already illustrated in the figure. Here the same diagnostic tests have been applied in the same laboratory to experimentally and naturally infected cats. 
+
+![](figs/boenzli.pdf) 
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (2)
+
+- If assumption (2) is not satisfied, the accuracies would differ between two populations, this would add four additional parameters to be estimated, while there are only three additional degrees of freedom. 
+
+- *Se* and *Sp* are assumed to vary with external factors.
+
+- *Se*, for example, especially when detecting an infectious agent, may depend on the prevalence and the stage of disease. 
+
+- The occurrence of a so-called *spectrum bias* contradicts this assumption.
+
+---
+
+## Criticism of the Hui-Walter paradigm assumption (3)
+
+- Assumption (3) demanding conditional independence was the first to be questioned by Vacek (1985).
+
+- Not accounting for potential conditional dependence may lead to misleading, biased estimates with a positive correlation leading to an over-estimation and a negative correlation to an under-estimation of the test *Se* and *Sp*. 
+
+
+---
+
+### Condtional independencies
+
+- Test are considered conditionally independent if the probability of getting a given test result on one test does not depend on the result from the other test, given the disease status of the individual.
+
+- Conditional independence implies that given that an animal is diseased (or not) the probability $P$ of positive (or negative) outcomes for T\textsubscript{1}, the test results of the first test, is the same -  regardless of the known outcome for the second test, T\textsubscript{2}.
+
+---
+
+### Conditional independence
+\[P(T\textsubscript{1}\textsuperscript{+},T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+}) = P(T\textsubscript{1}\textsuperscript{+} \vert D\textsuperscript{+}) \times  P(T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+})]\]
+
+### Conditional dependence
+\[P(T\textsubscript{1}\textsuperscript{+},T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+}) \neq P(T\textsubscript{1}\textsuperscript{+} \vert D\textsuperscript{+}) \times  P(T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+})\]
+
+ 
+---
+
+## Conditional dependencies
+
+- Conditional dependence, in contrast, implies that
+\[P(T\textsubscript{1}\textsuperscript{+} \vert T\textsubscript{2}\textsuperscript{+}) \neq P(T\textsubscript{1}\textsuperscript{+} \vert T\textsubscript{2}\textsuperscript{--})\] and / or \[P(T\textsubscript{1}\textsuperscript{--} \vert T\textsubscript{2}\textsuperscript{--}) \neq P(T\textsubscript{1}\textsuperscript{--} \vert T\textsubscript{2}\textsuperscript{+})\]
+ \noindent
+ 
+---
+
+## Conditional (in)dependencies Interpretation
+
+- Seen from a biological perspective, conditional dependency between two diagnostic tests could occur if both tests are based on the same biological principle.
+
+- For example, the *Sp*s of two ELISAs might be conditionally dependent because they are both affected by the same cross-reacting agent. Another example would be two PCRs utilising fecal material which might contain substances potentially inhibiting the PCR reaction. 
+
+---
+
+## Conditional dependencies 
+
+- Obviously, conditional dependencies or covariances are additional parameters to be estimated, which in the frequentist situation (without any constraints put on the parameters) would lead to a non-identifiable problem (over-parameterisation). 
+- Whereas under the assumption of conditional independence at least three tests per sample allowing to estimate seven parameters are needed, under the assumption of conditional dependence 15 parameters need to estimated thus leading to non-identifiability.
+- It is of course vital, that the parameters of a latent class model are identifiable to obtain meaningful estimates.
+
+
+---
+
+## Conditional dependencies 
+![](figs/berkvens.pdf) 
+
+---
+
+## Conditional dependencies
+
+- For example for two diagnostic tests named T\textsubscript{1} and T\textsubscript{2} the probabilities of the four different options of binary test results (+ +, + --, -- +, -- --) including also two conditional dependencies 
+    * $covs12$, the covariance between the sensitivities of test 1 and 2
+    * $covc12$, the covariance between specificities of test 1 and 2) could be modelled as follows:  	
+
+![](figs/covsc.pdf)  
+
+---
+
+## Example of a COVID-19 data set
+
+---
+
+## Dealing with correlation
+
+It helps to consider the data simulation as a (simplified) biological process (where my parameters are not representative of real life!).
+
+---
+
+## 2 pops - 3 tests
+
+```{r}
+# The probability of infection with COVID in two populations:
+prevalence <- c(0.01,0.05)
+# The probability of shedding COVID in the nose conditional on infection:
+nose_shedding <- 0.8
+# The probability of shedding COVID in the throat conditional on infection:
+throat_shedding <- 0.8
+# The probability of detecting virus with the antigen test:
+antigen_detection <- 0.75
+# The probability of detecting virus with the PCR test:
+pcr_detection <- 0.999
+# The probability of random cross-reaction with the antigen test:
+antigen_crossreact <- 0.05
+# The probability of random cross-reaction with the PCR test:
+pcr_crossreact <- 0.01
+```
+
+. . .
+
+Note:  cross-reactions are assumed to be independent!
+
+---
+
+Simulating latent states:
+
+```{r}
+N <- 20000
+Populations <- length(prevalence)
+
+covid_data <- tibble(Population = sample(seq_len(Populations), N, replace=TRUE)) %>%
+  ## True infection status:
+  mutate(Status = rbinom(N, 1, prevalence[Population])) %>%
+  ## Nose shedding status:
+  mutate(Nose = Status * rbinom(N, 1, nose_shedding)) %>%
+  ## Throat shedding status:
+  mutate(Throat = Status * rbinom(N, 1, throat_shedding))
+```
+
+---
+
+Simulating test results:
+
+```{r}
+covid_data <- covid_data %>%
+  ## The nose swab antigen test may be false or true positive:
+  mutate(NoseAG = case_when(
+    Nose == 1 ~ rbinom(N, 1, antigen_detection),
+    Nose == 0 ~ rbinom(N, 1, antigen_crossreact)
+  )) %>%
+  ## The throat swab antigen test may be false or true positive:
+  mutate(ThroatAG = case_when(
+    Throat == 1 ~ rbinom(N, 1, antigen_detection),
+    Throat == 0 ~ rbinom(N, 1, antigen_crossreact)
+  )) %>%
+  ## The PCR test may be false or true positive:
+  mutate(ThroatPCR = case_when(
+    Throat == 1 ~ rbinom(N, 1, pcr_detection),
+    Throat == 0 ~ rbinom(N, 1, pcr_crossreact)
+  ))
+```
+
+---
+
+The overall sensitivity of the tests can be calculated as follows:
+
+```{r}
+covid_sensitivity <- c(
+  # Nose antigen:
+  nose_shedding*antigen_detection + (1-nose_shedding)*antigen_crossreact,
+  # Throat antigen:
+  throat_shedding*antigen_detection + (1-throat_shedding)*antigen_crossreact,
+  # Throat PCR:
+  throat_shedding*pcr_detection + (1-throat_shedding)*pcr_crossreact
+)
+covid_sensitivity
+```
+
+---
+
+The overall specificity of the tests is more straightforward:
+
+```{r}
+covid_specificity <- c(
+  # Nose antigen:
+  1 - antigen_crossreact,
+  # Throat antigen:
+  1 - antigen_crossreact,
+  # Throat PCR:
+  1 - pcr_crossreact
+)
+covid_specificity
+```
+
+. . .
+
+However:  this assumes that cross-reactions are independent!
+
+---
+
+## Model specification
+
+```{r, eval=FALSE}
+prob[1,p] <-  prev[p] * ((1-se[1])*(1-se[2])*(1-se[3]) 
+                         +covse12 +covse13 +covse23) +
+              (1-prev[p]) * (sp[1]*sp[2]*sp[3] 
+                             +covsp12 +covsp13 +covsp23)
+
+prob[2,p] <- prev[p] * (se[1]*(1-se[2])*(1-se[3]) 
+	                       -covse12 -covse13 +covse23) +
+	           (1-prev[p]) * ((1-sp[1])*sp[2]*sp[3] 
+	                          -covsp12 -covsp13 +covsp23)
+
+## snip ##
+		
+# Covariance in sensitivity between tests 1 and 2:
+covse12 ~ dunif( (se[1]-1)*(1-se[2]) , 
+	                 min(se[1],se[2]) - se[1]*se[2] )
+# Covariance in specificity between tests 1 and 2:
+covsp12 ~ dunif( (sp[1]-1)*(1-sp[2]) , 
+	                 min(sp[1],sp[2]) - sp[1]*sp[2] )
+```
+
+. . .
+
+It is quite easy to get the terms slightly wrong!
+
+---
+
+## Template Hui-Walter
+
+The model code and data format for an arbitrary number of populations (and tests) can be determined automatically using the template_huiwalter function from the runjas package:
+
+```{r results='hide'}
+template_huiwalter(
+  covid_data %>% select(Population, NoseAG, ThroatAG, ThroatPCR), 
+  outfile = 'covidmodel.txt', covariance=TRUE)
+```
+
+This generates self-contained model/data/initial values etc
+
+---
+
+```{r echo=FALSE, comment=''}
+cleanup <- c(cleanup, 'covidmodel.txt')
+cat(readLines('covidmodel.txt')[3:111], sep='\n')
+```
+
+---
+
+```{r echo=FALSE, comment=''}
+cat(readLines('covidmodel.txt')[-(1:111)], sep='\n')
+```
+
+---
+
+And can be run directly from R:
+
+```{r, results='hide'}
+results <- run.jags('covidmodel.txt')
+results
+```
+
+```{r echo=FALSE}
+res <- summary(results)[,c(1:3,9,11)]
+res[] <- round(res, 3)
+knitr::kable(res)
+```
+
+---
+
+## Template Hui-Walter
+
+- Modifying priors must still be done directly in the model file
+  * Same for adding .RNG.seed and the deviance monitor
+
+- The model needs to be re-generated if the data changes
+  * But remember that your modified priors will be reset
+
+- There must be a single column for the population (as a factor), and all of the other columns (either factor, logical or numeric) are interpreted as being test results
+
+. . .
+
+- Covariance terms are all deactivated by default
+
+---
+
+## Activating covariance terms
+
+Find the lines for the covariances that we want to activate (i.e. the two Throat tests):
+
+You will also need to uncomment out the relevant initial values for BOTH chains:
+
+---
+
+## Session Summary
+
+- Correlation terms add complexity to the model in terms of:
+  * Opportunity to make a coding mistake
+  * Reduced identifiability
+
+. . .
+
+- The template_huiwalter function helps us with coding mistakes
+
+- Only careful consideration of covariance terms can help us with identifiability
+
+---
+
+## Exercise 1 {.fragile}
+
+Use the template_huiwalter function to look at the simple 2-test 5-population example from the previous session.  Use this data simulation code:
+
+```{r}
+# Set a random seed so that the data are reproducible:
+set.seed(2022-07-14)
+
+sensitivity <- c(0.9, 0.6)
+specificity <- c(0.95, 0.9)
+N <- 1000
+
+# Change the number of populations here:
+Populations <- 5
+# Change the variation in prevalence here:
+(prevalence <- runif(Populations, min=0.1, max=0.9))
+
+data <- tibble(Population = sample(seq_len(Populations), N, replace=TRUE)) %>%
+  mutate(Status = rbinom(N, 1, prevalence[Population])) %>%
+  mutate(Test1 = rbinom(N, 1, sensitivity[1]*Status + (1-specificity[1])*(1-Status))) %>%
+  mutate(Test2 = rbinom(N, 1, sensitivity[2]*Status + (1-specificity[2])*(1-Status))) %>%
+  select(-Status)
+
+(twoXtwoXpop <- with(data, table(Test1, Test2, Population)))
+(Tally <- matrix(twoXtwoXpop, ncol=Populations))
+(TotalTests <- apply(Tally, 2, sum))
+
+template_huiwalter(data, outfile="template_2test.txt")
+```
+
+Look at the model code and familiarise yourself with how the model is set out (there are some small differences, but the overall code is equivalent).Run the model.
+
+Now activate the correlation terms between tests 1 and 2.  Is anything different about the results?
+
+## Solution 1 {.fragile}
+
+There is no particular solution to the first part of this exercise, but please ask if you have any questions about the model code that template_huiwalter generates.  Remember that re-running the template_huiwalter function will over-write your existing model including any changes you made, so be careful!
+
+We can run the model as follows:
+
+```{r}
+results_nocov <- run.jags("template_2test.txt")
+results_nocov
+```
+```{r include=FALSE}
+cleanup <- c(cleanup, "template_2test.txt")
+cleanup <- c(cleanup, "template_2test_cov.txt")
+```
+
+A shortcut for activating the covariance terms is to re-run template_huiwalter as follows:
+
+```{r}
+template_huiwalter(data, outfile="template_2test_cov.txt", covariance=TRUE)
+results_cov <- run.jags("template_2test_cov.txt")
+results_cov
+```
+
+Activating the covariance terms with 2 tests has made the model less identifiable, and has therefore decreased the effective sample size and increased the width of the 95% CI for all of the parameters to the point that the model is no longer very useful.  This is not something that we recommend you do in practice, even if the two tests are known to be correlated!  We will revisit this issue tomorrow.
