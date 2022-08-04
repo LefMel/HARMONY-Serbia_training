@@ -1,22 +1,21 @@
 ---
-title: "Hui-Walter models - Adjusting for conditional dependencies between tests"
+title: "Multi-test|Multi-pop - Adjusting for conditional dependencies between tests"
 author:
-- Sonja Hartnack
-- Valerie Hungerbühler
+- Julio Alvarez
 - Eleftherios Meletis
-date: '2022-07-14'
+date: '2022-09-01'
 output:
-  slidy_presentation: default
   beamer_presentation: default
+  slidy_presentation: default
   ioslides_presentation: default
 params:
   presentation: yes
-subtitle: CA18208 HARMONY Zurich Training School - https://harmony-net.eu/
+subtitle: CA18208 HARMONY Serbia Training School - https://harmony-net.eu/
 ---
 
 ```{r rendering, eval=FALSE, include=FALSE}
 # To render this as PDF (beamer) slides run:
-rmarkdown::render('Day_1_Session_4.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
+rmarkdown::render('Session_3_dependence.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
 ```
 
 ```{r setup, include=FALSE}
@@ -24,7 +23,7 @@ library("tidyverse")
 library("runjags")
 library("rjags")
 runjags.options(silent.jags=TRUE, silent.runjags=TRUE)
-set.seed(2022-07-14)
+set.seed(2022-09-01)
 
 # Reduce the width of R code output for PDF only:
 if(params$presentation){
@@ -70,14 +69,6 @@ cleanup <- character(0)
 
 ## Criticism of the Hui-Walter paradigm assumption (2)
 
-- In reality, the assumption of constant *Se* and *Sp* is questionable as already illustrated in the figure. Here the same diagnostic tests have been applied in the same laboratory to experimentally and naturally infected cats. 
-
-![](figs/boenzli.pdf) 
-
----
-
-## Criticism of the Hui-Walter paradigm assumption (2)
-
 - If assumption (2) is not satisfied, the accuracies would differ between two populations, this would add four additional parameters to be estimated, while there are only three additional degrees of freedom. 
 
 - *Se* and *Sp* are assumed to vary with external factors.
@@ -92,8 +83,7 @@ cleanup <- character(0)
 
 - Assumption (3) demanding conditional independence was the first to be questioned by Vacek (1985).
 
-- Not accounting for potential conditional dependence may lead to misleading, biased estimates with a positive correlation leading to an over-estimation and a negative correlation to an under-estimation of the test *Se* and *Sp*. 
-
+- Not accounting for potential conditional dependence may lead to misleading, biased estimates with a positive correlation leading to an over-estimation of the test accuracies and a negative of an under-estimation. 
 
 ---
 
@@ -111,7 +101,6 @@ cleanup <- character(0)
 ### Conditional dependence
 \[P(T\textsubscript{1}\textsuperscript{+},T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+}) \neq P(T\textsubscript{1}\textsuperscript{+} \vert D\textsuperscript{+}) \times  P(T\textsubscript{2}\textsuperscript{+} \vert D\textsuperscript{+})\]
 
- 
 ---
 
 ## Conditional dependencies
@@ -154,13 +143,12 @@ cleanup <- character(0)
 
 ---
 
-## Example of a COVID-19 data set
-
----
-
 ## Dealing with correlation
 
 It helps to consider the data simulation as a (simplified) biological process (where my parameters are not representative of real life!).
+
+
+# Example of a COVID-19 data set
 
 ---
 
@@ -376,11 +364,11 @@ You will also need to uncomment out the relevant initial values for BOTH chains:
 
 ## Exercise 1 {.fragile}
 
-Use the template_huiwalter function to look at the simple 2-test 5-population example from the previous session.  Use this data simulation code:
+Use the template_huiwalter function to look at the simple 2-test 5-population example from yesterday's session.  Use this data simulation code:
 
 ```{r}
 # Set a random seed so that the data are reproducible:
-set.seed(2022-07-14)
+set.seed(2022-09-01)
 
 sensitivity <- c(0.9, 0.6)
 specificity <- c(0.95, 0.9)
@@ -431,4 +419,6 @@ results_cov <- run.jags("template_2test_cov.txt")
 results_cov
 ```
 
-Activating the covariance terms with 2 tests has made the model less identifiable, and has therefore decreased the effective sample size and increased the width of the 95% CI for all of the parameters to the point that the model is no longer very useful.  This is not something that we recommend you do in practice, even if the two tests are known to be correlated!  We will revisit this issue tomorrow.
+---
+
+Time for our break

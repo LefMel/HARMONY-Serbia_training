@@ -1,4 +1,4 @@
-## Auto-generated Hui-Walter model created by runjags version 2.2.1-7 on 2022-07-14
+## Auto-generated Hui-Walter model created by runjags version 2.2.1-7 on 2022-08-04
 
 model{
 
@@ -103,7 +103,7 @@ inits{
 ## Data:
 data{
 "Populations" <- 5
-"N_RR" <- c(190, 198, 192, 228, 192)
-"Tally_RR" <- structure(c(47, 48, 19, 76, 68, 47, 15, 68, 117, 24, 13, 38, 141, 34, 23, 30, 142, 22, 14, 14), .Dim = c(4, 5))
+"N_RR" <- c(190, 197, 191, 214, 208)
+"Tally_RR" <- structure(c(107, 27, 26, 30, 51, 53, 19, 74, 111, 29, 17, 34, 47, 73, 15, 79, 69, 49, 12, 78), .Dim = c(4, 5))
 }
 
