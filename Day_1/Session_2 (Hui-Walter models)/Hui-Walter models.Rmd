@@ -15,7 +15,7 @@ subtitle: CA18208 HARMONY Serbia Training School - https://harmony-net.eu/
 
 ```{r rendering, eval=FALSE, include=FALSE}
 # To render this as PDF (beamer) slides run:
-rmarkdown::render('Session_2-3_Hui-Walter.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
+rmarkdown::render('Hui-Walter models.Rmd', 'beamer_presentation', params=list(presentation=TRUE))
 ```
 
 ```{r setup, include=FALSE}
@@ -347,13 +347,17 @@ Run the `hw_definition` model under the following different scenarios and interp
 
 1. Change the priors for *Se* and *Sp* and try Beta(2,1).
 
-2. Estimate the Beta parameters for the *Se* and *Sp* of the shiny new test described.
+2. Estimate the Beta parameters for the *Se* and *Sp* of the shiny new test that is described in the slides.
 
 3. Run the model using the beta priors for *Se* and *Sp* from Step 2.
 
 4. Try to run the model with different initial values.
 
 5. Force Se + Sp > 1. Be careful to specify initial values that are within the restricted parameter space.
+
+---
+
+Time for our lunch break
 
 # Multi-population Hui-Walter models
 
@@ -700,6 +704,5 @@ As a general rule, the more populations you have, and the more the prevalence va
 
 ---
 
-Time for another break
-
+Day 1 Summary
 
