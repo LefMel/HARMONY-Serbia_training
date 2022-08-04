@@ -10,7 +10,7 @@ output:
   ioslides_presentation: default
 params:
   presentation: yes
-subtitle: CA18208 HARMONY Zurich Training School - https://harmony-net.eu/
+subtitle: CA18208 HARMONY Serbia Training School - https://harmony-net.eu/
 ---
 
 ```{r rendering, eval=FALSE, include=FALSE}
