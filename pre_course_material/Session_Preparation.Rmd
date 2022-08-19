@@ -4,9 +4,9 @@ author:
 - Eleftherios Meletis, Julio Alvarez, Matthew Denwood
 date: "`r Sys.Date()`"
 output:
-  pdf_document: default
   html_document:
     df_print: paged
+  pdf_document: default
 subtitle: Homework and software installation for the training school on Bayesian Latent Class Models to evaluate diagnostic tests in the absence of a gold standard
 fontsize: 12pt
 ---
