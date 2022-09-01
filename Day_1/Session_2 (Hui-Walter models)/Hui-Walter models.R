@@ -42,7 +42,7 @@ hw_definition <- c("model{
   se[1] ~ dbeta(1, 1)
   sp[1] ~ dbeta(1, 1)
   se[2] ~ dbeta(1, 1)
-  sp[2] ~ dbeta(1, 1)
+  sp[2] <- 0.9
 
   #data# Cross_Classified_Data, N
   #monitor# prev, prob, se, sp
@@ -64,14 +64,14 @@ se <- list(chain1=c(0.01,0.99), chain2=c(0.99,0.01))
 sp <- list(chain1=c(0.01,0.99), chain2=c(0.99,0.01))
 
 # Run the model
-results <- run.jags(basic_hw, n.chains=2)
+results <- run.jags(hw_definition, n.chains=2)
 
 
 # Remember to check convergence and effective sample size!
 
 
 # Results interpretation and visualization
-summary(results)
+View(summary(results))
 
 
 res <- summary(results)[,c(1:3,9,11)]
@@ -127,6 +127,7 @@ qbeta(c(0.025,0.975), shape1=1, shape2=1)
 curve(dbeta(x, 2, 1), from=0, to=1)
 qbeta(c(0.025,0.975), shape1=2, shape2=1)
 
+curve(dbeta(x,8,1), from=0, to=1)
 ## Choosing a prior
 
 # What we want is e.g. Beta(20,1)
@@ -144,8 +145,9 @@ qbeta(c(0.025,0.975), shape1=2, shape2=1)
 
 library("PriorGen")
 findbeta(themedian = 0.94, percentile=0.95, percentile.value = 0.92)
+findbeta(themedian = 0.5, percentile=0.95, percentile.value = 0.1)
 
-
+curve(dbeta(x, shape1=429.95, shape2=27.76))
 # Note: `themedian` could also be `themean`
 
 # Plot beta distribution
@@ -169,7 +171,7 @@ curve(dbeta(x, shape1=429.95, shape2=27.76))
   
 #  Run the `hw_definition` model under the following different scenarios and interpret the results in each case.
 
-# 1. Change the priors for *Se* and *Sp* and try Beta(2,1).
+# 1. Change the priors for *Se* and *Sp* and try Beta(60,40).
 
 # 2. Estimate the Beta parameters for the *Se* and *Sp* of the shiny new test that is described in the slides.
 
